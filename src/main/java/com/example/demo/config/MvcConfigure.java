@@ -19,7 +19,7 @@ public class MvcConfigure implements WebMvcConfigurer {
 
 	@Override
 	public void addCorsMappings(CorsRegistry registry) {
-		registry.addMapping("/**").allowedOriginPatterns("*").allowedMethods("*").allowCredentials(true).maxAge(3600).allowedHeaders("*");
+		registry.addMapping("/**").allowedOrigins("*").allowedMethods("*").allowCredentials(true).maxAge(3600).allowedHeaders("*");
 	}
 
 	@Override

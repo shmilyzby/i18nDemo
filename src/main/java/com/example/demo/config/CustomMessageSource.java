@@ -22,7 +22,7 @@ public class CustomMessageSource extends AbstractMessageSource implements Resour
     /**
      * 初始化
      */
-    @PostConstruct
+//    @PostConstruct
     public void init() {
         this.reload();
     }
@@ -59,6 +59,7 @@ public class CustomMessageSource extends AbstractMessageSource implements Resour
 //            LOCAL_CACHE.put("in", idIdMessageResources);
 //        }
 //        return MapUtils.EMPTY_MAP;
+        return null;
     }
 
     /**
