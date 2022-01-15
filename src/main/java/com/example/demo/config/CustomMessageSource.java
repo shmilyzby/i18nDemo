@@ -1,15 +1,19 @@
 package com.example.demo.config;
 
+import cn.hutool.core.map.MapUtil;
+import com.example.demo.pojo.Message;
+import com.example.demo.service.MessageService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ResourceLoaderAware;
 import org.springframework.context.support.AbstractMessageSource;
 import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 
 import javax.annotation.PostConstruct;
 import java.text.MessageFormat;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Component("messageSource")
@@ -17,12 +21,15 @@ public class CustomMessageSource extends AbstractMessageSource implements Resour
 
     ResourceLoader resourceLoader;
 
+    @Autowired
+    MessageService messageService;
+
     private static final Map<String, Map<String, String>> LOCAL_CACHE = new ConcurrentHashMap<>(256);
 
     /**
      * 初始化
      */
-//    @PostConstruct
+    @PostConstruct
     public void init() {
         this.reload();
     }
@@ -32,34 +39,35 @@ public class CustomMessageSource extends AbstractMessageSource implements Resour
      */
     public void reload() {
         LOCAL_CACHE.clear();
-        LOCAL_CACHE.putAll(loadAllMessageResourcesFromDB());
+        LOCAL_CACHE.putAll(loadAllMessageResourcesFromDataBase());
     }
 
     /**
      * 从数据库中获取所有国际化配置 这边可以根据自己数据库表结构进行相应的业务实现
      * 对应的语言能够取出来对应的值就行了 无需一定要按照这个方法来
      */
-    public Map<String, Map<String, String>> loadAllMessageResourcesFromDB() {
-//        List<SysI18nBO> list = sysI18nService.findList(new SysI18nAO());
-//        if (CollectionUtils.isNotEmpty(list)) {
-//            final Map<String, String> zhCnMessageResources = new HashMap<>(list.size());
-//            final Map<String, String> enUsMessageResources = new HashMap<>(list.size());
-//            final Map<String, String> idIdMessageResources = new HashMap<>(list.size());
-//            for (SysI18nBO bo : list) {
-//                String name = bo.getModel() + "." + bo.getName();
-//                String zhText = bo.getZhCn();
-//                String enText = bo.getEnUs();
-//                String idText = bo.getInId();
-//                zhCnMessageResources.put(name, zhText);
-//                enUsMessageResources.put(name, enText);
-//                idIdMessageResources.put(name, idText);
-//            }
-//            LOCAL_CACHE.put("zh", zhCnMessageResources);
-//            LOCAL_CACHE.put("en", enUsMessageResources);
-//            LOCAL_CACHE.put("in", idIdMessageResources);
-//        }
-//        return MapUtils.EMPTY_MAP;
-        return null;
+    public Map<String, Map<String, String>> loadAllMessageResourcesFromDataBase() {
+        List<Message> messagesList = messageService.queryAllMessage();
+
+        if (!messagesList.isEmpty()){
+            final Map<String, String> zhCnMessageResources = new HashMap<>(messagesList.size());
+            final Map<String, String> enUsMessageResources = new HashMap<>(messagesList.size());
+            final Map<String, String> idIdMessageResources = new HashMap<>(messagesList.size());
+
+            for (Message message : messagesList) {
+                String messageBasename = message.getBasename();
+
+                zhCnMessageResources.put(messageBasename, message.getChinese());
+                enUsMessageResources.put(messageBasename, message.getEnglish());
+                idIdMessageResources.put(messageBasename, message.getIndonesian());
+            }
+
+            LOCAL_CACHE.put("zh", zhCnMessageResources);
+            LOCAL_CACHE.put("en", enUsMessageResources);
+            LOCAL_CACHE.put("in", idIdMessageResources);
+        }
+
+        return MapUtil.newHashMap();
     }
 
     /**
@@ -77,7 +85,24 @@ public class CustomMessageSource extends AbstractMessageSource implements Resour
         } else {
             try {
                 if (null != this.getParentMessageSource()) {
-                    return this.getParentMessageSource().getMessage(code, null, locale);
+                    return this.getParentMessageSource().getMessage(String.valueOf(code), null, locale);
+                }
+            } catch (Exception ex) {
+                logger.error(ex.getMessage(), ex);
+            }
+            return code;
+        }
+    }
+
+    public String getSourceFromCache(String code, Object[] args, Locale locale) {
+        String language = locale.getLanguage();
+        Map<String, String> props = LOCAL_CACHE.get(language);
+        if (null != props && props.containsKey(code)) {
+            return props.get(code);
+        } else {
+            try {
+                if (null != this.getParentMessageSource()) {
+                    return this.getParentMessageSource().getMessage(String.valueOf(code), args, locale);
                 }
             } catch (Exception ex) {
                 logger.error(ex.getMessage(), ex);
