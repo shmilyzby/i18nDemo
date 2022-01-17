@@ -98,6 +98,13 @@ public class CustomMessageSource extends AbstractMessageSource implements Resour
         String language = locale.getLanguage();
         Map<String, String> props = LOCAL_CACHE.get(language);
         if (null != props && props.containsKey(code)) {
+            MessageFormat messageFormat = resolveCode(code, locale);
+
+            if (messageFormat != null){
+                synchronized (messageFormat){
+                    return messageFormat.format(args);
+                }
+            }
             return props.get(code);
         } else {
             try {

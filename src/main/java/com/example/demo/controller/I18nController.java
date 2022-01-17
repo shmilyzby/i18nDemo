@@ -16,39 +16,39 @@ import java.util.Locale;
 @RestController
 public class I18nController {
 
-    ResourceBundleMessageSource messageSource = new ResourceBundleMessageSource();
+//    ResourceBundleMessageSource messageSource = new ResourceBundleMessageSource();
 
 
-//    @Autowired
-////    CustomMessageSource messageSource;
+    @Autowired
+    CustomMessageSource messageSource;
 
-    @PostConstruct
-    public void initialize(){
-        messageSource.setBasename("i18n/message");
-        messageSource.setDefaultEncoding("UTF-8");
-    }
+//    @PostConstruct
+//    public void initialize(){
+//        messageSource.setBasename("i18n/message");
+//        messageSource.setDefaultEncoding("UTF-8");
+//    }
 
     @GetMapping
     @RequestMapping("/getMessage")
     public String getMessage(){
 
-        String key = "validator.error_message.string_length_must_not_great_than";
-        Object[] args = {"name", "20"};
+//        String key = "account.settlementList.receive_cash";
+//        Object[] args = {"10"};
 
-        String cn = messageSource.getMessage(key, args, Locale.CHINA);
-        String us = messageSource.getMessage(key, args, Locale.US);
+//        String cn = messageSource.getMessage(key, args, Locale.CHINA);
+//        String us = messageSource.getMessage(key, args, Locale.US);
+//
+//        System.out.println(cn);
+//        System.out.println(us);
+
+
+        Object[] args = {"18"};
+        String cn = messageSource.getSourceFromCache("account.settlementList.receive_cash", args, Locale.CHINA);
+        String us = messageSource.getSourceFromCache("account.settlementList.receive_cash", args, Locale.ENGLISH);
 
         System.out.println(cn);
         System.out.println(us);
 
-
-//        Object[] args = {"18"};
-//        String cn = messageSource.getSourceFromCache("account.settlementList.receive_cash", args, Locale.CHINA);
-//        String us = messageSource.getSourceFromCache("account.settlementList.receive_cash", args, Locale.ENGLISH);
-//
-//        System.out.println(cn);
-//        System.out.println(us);
-//
         JSONArray array = new JSONArray();
         array.add(cn);
         array.add(us);
